@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tasks-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: tasks-backend
+  template:
+    metadata:
+      labels:
+        app: tasks-backend
+    spec:
+      containers:
+        - name: app
+          image: tasks-backend:local
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: MONGODB_URI
+              value: mongodb://mongo:27017/kaiburr
+            - name: EXECUTION_MODE
+              value: k8s
+            - name: K8S_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: tasks-backend
+spec:
+  selector:
+    app: tasks-backend
+  ports:
+    - port: 8080
+      targetPort: 8080
+  type: NodePort
